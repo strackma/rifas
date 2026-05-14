@@ -7,37 +7,42 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+        }
         
         .n-celda {
             aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
-            border: 2px solid #f1f5f9;
-            border-radius: 12px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s ease;
             user-select: none;
-            font-size: 0.9rem;
-            color: #475569;
+            font-size: 0.95rem;
+            color: #64748b;
         }
 
         .n-celda:hover:not(.vendido) {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
             border-color: #3b82f6;
             color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            background-color: #eff6ff;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
         }
 
         .seleccionado {
-            background-color: #3b82f6 !important;
+            background-color: #2563eb !important;
             color: white !important;
-            border-color: #2563eb !important;
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+            border-color: #1d4ed8 !important;
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.5);
         }
 
         .vendido {
@@ -45,129 +50,146 @@
             color: #ef4444 !important;
             border-color: #fecaca !important;
             cursor: not-allowed;
-            opacity: 0.8;
+            opacity: 0.7;
             position: relative;
+            overflow: hidden;
         }
 
         .vendido::after {
             content: '';
             position: absolute;
-            width: 60%;
+            width: 140%;
             height: 2px;
-            background: #ef4444;
+            background: rgba(239, 68, 68, 0.3);
             transform: rotate(-45deg);
         }
 
         .grid-rifa {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 12px;
         }
 
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* Notificación personalizada (Toast) */
+        #toast {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translate(-50%, 100%);
+            opacity: 0;
         }
-        .loading-text { animation: pulse-soft 1.5s infinite; }
+
+        #toast.visible {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .input-error {
+            border-color: #ef4444 !important;
+            animation: shake 0.4s focus;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Badge azul para los títulos */
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #eff6ff;
+            color: #1e40af;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid #dbeafe;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-900">
+<body class="min-h-screen pb-20">
 
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <!-- TOAST QUE REEMPLAZA AL ALERT -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+        <div id="toastContent" class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px] border border-white/10">
+            <span id="toastIcon" class="text-xl"></span>
+            <p id="toastText" class="text-sm font-semibold"></p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
         
-        <!-- LOGIN SECTION -->
-        <div id="loginSection" class="max-w-md mx-auto mt-20">
-            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-center">
-                <div class="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- LOGIN -->
+        <div id="loginSection" class="max-w-md mx-auto mt-24">
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 text-center">
+                <div class="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
-                <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Sistema de Rifa</h2>
-                <p class="text-slate-500 mb-8 text-sm">Ingresa la clave maestra para gestionar las ventas.</p>
-                
-                <input type="password" id="passInput" placeholder="Contraseña de acceso" 
-                       class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all mb-4 text-center font-bold tracking-widest">
-                
-                <button onclick="acceder()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95">
+                <h2 class="text-3xl font-extrabold text-slate-800 mb-3 tracking-tight">Acceso Rifa</h2>
+                <input type="password" id="passInput" placeholder="Contraseña" 
+                       class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none mb-6 text-center font-bold text-lg">
+                <button onclick="acceder()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-xl transition-all">
                     Entrar al Sistema
                 </button>
-                <p id="errorMsg" class="text-red-500 text-xs mt-4 font-semibold hidden">⚠️ La contraseña es incorrecta</p>
             </div>
         </div>
 
-        <!-- MAIN APP SECTION -->
-        <div id="mainSection" class="hidden animate-in fade-in duration-500">
-            <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <!-- APP -->
+        <div id="mainSection" class="hidden">
+            <header class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
                 <div>
-                    <h1 class="text-3xl font-black text-slate-800"> 🏅OMA 2026</h1>
-                    <p class="text-slate-500 font-medium">Panel de Control de Rifa</p>
+                    <span class="text-blue-600 font-bold text-xs uppercase tracking-widest mb-1 block">Control de rifas</span>
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tighter">🥇🥈🥉 OMA 2026</h1>
                 </div>
-                <div class="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center">
-                    <div class="w-2.5 h-2.5 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Sync Activo</span>
+                <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+                    <span class="text-sm font-bold text-slate-700">Sincronización Activa</span>
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
-                <!-- Formulario -->
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-                        <h3 class="text-lg font-bold mb-4 flex items-center text-slate-700">
-                            <span class="bg-blue-600 text-white w-6 h-6 rounded-md flex items-center justify-center text-xs mr-2">1</span>
-                            Registro de Venta
-                        </h3>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-4">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-lg border border-slate-100 sticky top-8">
+                        <div class="step-badge">
+                            <span class="mr-2 opacity-50"></span> Nueva Venta
+                        </div>
                         
-                        <div class="space-y-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Comprador</label>
-                                <div class="grid grid-cols-2 gap-2 mt-1">
-                                    <input type="text" id="nombre" placeholder="Nombre" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 outline-none">
-                                    <input type="text" id="apellido" placeholder="Apellido" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 outline-none">
-                                </div>
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="nombre" placeholder="Nombre" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400">
+                                <input type="text" id="apellido" placeholder="Apellido" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400">
                             </div>
+                            <input type="tel" id="telefono" placeholder="Teléfono" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400">
+                            <input type="text" id="vendedor" placeholder="Vendedor" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400">
 
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Contacto</label>
-                                <input type="tel" id="telefono" placeholder="WhatsApp / Teléfono" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mt-1 text-sm focus:ring-2 focus:ring-blue-100 outline-none">
-                            </div>
-                            
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Vendedor (Egresado)</label>
-                                <input type="text" id="vendedor" placeholder="Nombre del alumno" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mt-1 text-sm focus:ring-2 focus:ring-blue-100 outline-none">
-                            </div>
-
-                            <div class="bg-blue-50 p-4 rounded-2xl text-center">
-                                <span class="text-blue-400 font-bold text-[10px] uppercase">Número Seleccionado</span>
-                                <div id="numDisplay" class="text-5xl font-black text-blue-600 my-1">--</div>
+                            <div class="bg-slate-900 rounded-[1.5rem] p-6 text-center my-6">
+                                <span class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">Seleccionado</span>
+                                <div id="numDisplay" class="text-6xl font-black text-white my-2">--</div>
                             </div>
 
                             <button id="btnRegistrar" onclick="registrarVenta()" 
-                                    class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                                Confirmar y Tachar
+                                    class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-5 rounded-2xl shadow-lg shadow-emerald-100 transition-all active:scale-[0.98] disabled:opacity-50">
+                                Confirmar y Guardar
                             </button>
-                            
-                            <div id="loader" class="hidden text-center py-2">
-                                <span class="loading-text text-blue-600 text-xs font-bold uppercase tracking-widest">Sincronizando...</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Mapa -->
                 <div class="lg:col-span-8">
-                    <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold flex items-center text-slate-700">
-                                <span class="bg-blue-600 text-white w-6 h-6 rounded-md flex items-center justify-center text-xs mr-2">2</span>
-                                Mapa de Números
-                            </h3>
-                            <div id="contadorVentas" class="text-sm font-black text-blue-600 bg-blue-50 px-4 py-1 rounded-full">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-lg border border-slate-100">
+                        <div class="flex justify-between items-center mb-8">
+                            <div class="step-badge mb-0">
+                                <span class="mr-2 opacity-50"></span> Mapa de Números
+                            </div>
+                            <div id="contadorVentas" class="text-sm font-black text-blue-600 bg-blue-50 px-5 py-2 rounded-xl tracking-tight">
                                 Cargando...
                             </div>
                         </div>
-                        
                         <div id="gridRifa" class="grid-rifa"></div>
                     </div>
                 </div>
@@ -182,16 +204,40 @@
         let numeroSeleccionado = null;
         let ocupados = [];
 
+        function showNotification(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toastText');
+            const toastContent = document.getElementById('toastContent');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastText.innerText = msg;
+            
+            if(type === 'error') {
+                toastContent.className = "bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px]";
+                toastIcon.innerHTML = "❌";
+            } else if(type === 'success') {
+                toastContent.className = "bg-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px]";
+                toastIcon.innerHTML = "✅";
+            } else {
+                toastContent.className = "bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px]";
+                toastIcon.innerHTML = "⚡";
+            }
+
+            toast.classList.add('visible');
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 3500);
+        }
+
         async function acceder() {
             const pass = document.getElementById('passInput').value;
             if (pass === CLAVE_MAESTRA) {
-                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').classList.remove('hidden');
+                showNotification("Acceso correcto", "success");
                 await cargarDatosExcel();
             } else {
-                const err = document.getElementById('errorMsg');
-                err.classList.remove('hidden');
-                setTimeout(() => err.classList.add('hidden'), 3000);
+                showNotification("Contraseña incorrecta", "error");
             }
         }
 
@@ -204,7 +250,6 @@
                 ocupados = data.map(String);
                 renderizarGrilla();
             } catch (e) {
-                console.error("Error al cargar:", e);
                 renderizarGrilla();
             }
         }
@@ -224,70 +269,69 @@
                 }
                 grid.appendChild(celda);
             }
-            document.getElementById('contadorVentas').innerText = `${ocupados.length} / 200 VENDIDOS`;
+            document.getElementById('contadorVentas').innerText = `${ocupados.length} /200 VENDIDOS`;
         }
 
         function seleccionar(num) {
             const anterior = document.querySelector('.seleccionado');
             if(anterior) anterior.classList.remove('seleccionado');
-            
             numeroSeleccionado = num;
-            const nuevaCelda = document.getElementById(`celda-${num}`);
-            nuevaCelda.classList.add('seleccionado');
-            
-            const display = document.getElementById('numDisplay');
-            display.innerText = num;
-            display.classList.add('animate-bounce');
-            setTimeout(() => display.classList.remove('animate-bounce'), 500);
+            document.getElementById(`celda-${num}`).classList.add('seleccionado');
+            document.getElementById('numDisplay').innerText = num;
         }
 
         async function registrarVenta() {
-            const fields = {
+            const inputs = {
                 nombre: document.getElementById('nombre'),
                 apellido: document.getElementById('apellido'),
                 telefono: document.getElementById('telefono'),
                 vendedor: document.getElementById('vendedor')
             };
 
-            if(!fields.nombre.value || !fields.apellido.value || !fields.telefono.value || !fields.vendedor.value || !numeroSeleccionado) {
-                alert("⚠️ Por favor, completa los datos y selecciona un número.");
+            let error = false;
+            if(!numeroSeleccionado) {
+                showNotification("Selecciona un número en el mapa", "error");
+                return;
+            }
+
+            Object.values(inputs).forEach(input => {
+                if(!input.value.trim()) {
+                    input.classList.add('input-error');
+                    error = true;
+                } else {
+                    input.classList.remove('input-error');
+                }
+            });
+
+            if(error) {
+                showNotification("Completa todos los campos en rojo", "error");
                 return;
             }
 
             const btn = document.getElementById('btnRegistrar');
-            const loader = document.getElementById('loader');
-
             btn.disabled = true;
-            loader.classList.remove('hidden');
+            showNotification("Guardando venta...", "info");
 
             const formData = new URLSearchParams();
-            formData.append('nombre', fields.nombre.value);
-            formData.append('apellido', fields.apellido.value);
-            formData.append('telefono', fields.telefono.value);
-            formData.append('vendedor', fields.vendedor.value);
+            formData.append('nombre', inputs.nombre.value);
+            formData.append('apellido', inputs.apellido.value);
+            formData.append('telefono', inputs.telefono.value);
+            formData.append('vendedor', inputs.vendedor.value);
             formData.append('numero', numeroSeleccionado);
             formData.append('pass', CLAVE_MAESTRA);
 
             try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
-
-                Object.values(fields).forEach(f => f.value = "");
-                document.getElementById('numDisplay').innerText = "--";
+                await fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
                 
+                Object.values(inputs).forEach(i => i.value = "");
+                document.getElementById('numDisplay').innerText = "--";
                 ocupados.push(numeroSeleccionado.toString());
                 numeroSeleccionado = null;
                 renderizarGrilla();
-                
-                alert("✅ Venta registrada correctamente.");
-
+                showNotification("¡Venta registrada con éxito!", "success");
             } catch (e) {
-                alert("❌ Error al conectar con Excel.");
+                showNotification("Error de conexión", "error");
             } finally {
-                loader.classList.add('hidden');
                 btn.disabled = false;
             }
         }
